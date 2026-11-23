@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATM Ekran Sağlığı İzleme · Demo</title>
+<meta name="description" content="Kamera görüntüsünden ATM ekran arızalarını yapay zekâ ile tespit eden sistemin kayıtlı demo çalışması.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.4 2.4 4.6-4.8"/></svg>
+      <span>ATM Ekran Sağlığı İzleme</span>
+    </div>
+    <span class="rec-badge" title="Bu sayfa sistemin gerçek bir çalışmasının kaydını oynatır">● Kayıtlı çalışma · canlı değil</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Kamera ATM ekranını izler; ekran kararır, bozulur veya hata verirse uyarır.</h1>
+    <p>Müşteri ATM'yi kullanırken sistem gizlilik gereği ekrana <b>hiç bakmaz</b>. Aşağıda sistemin otomatik testinin
+      gerçek bir çalışması oynatılıyor: önce bir müşteri gelip gidiyor, sonra 10 ekran arızası rastgele sırayla ve
+      sisteme söylenmeden uygulanıyor. Sistem her birini yalnızca görüntüden bulmaya çalışıyor.</p>
+  </section>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <section class="stage">
+    <div class="video-col">
+      <div class="video-box">
+        <video id="cam" playsinline muted preload="auto"></video>
+        <span class="vtag">Demo kamera görüntüsü · kişiler bulanık</span>
+        <button class="bigplay" id="bigplay" aria-label="Oynat">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+      <div class="controls">
+        <button id="play" class="btn" aria-label="Oynat / duraklat">Oynat</button>
+        <input id="seek" type="range" min="0" max="1000" value="0" aria-label="Zaman">
+        <span id="clock" class="mono">0:00 / 0:00</span>
+        <select id="speed" aria-label="Hız"><option value="1">1×</option><option value="1.5">1,5×</option><option value="2">2×</option></select>
+      </div>
+      <div class="phase" id="phase">—</div>
+    </div>
+
+    <aside class="side">
+      <div class="small muted" id="atmline">—</div>
+      <div class="decision" id="decision">
+        <div class="d-title" id="dtitle">—</div>
+        <p class="d-text" id="dtext"></p>
+      </div>
+      <div class="steps">
+        <div class="step"><span>1. Kamera</span><b>görüntü geliyor</b></div>
+        <div class="step" id="s2"><span>2. Müşteri var mı?</span><b>—</b></div>
+        <div class="step" id="s3"><span>3. Ekran kontrolü</span><b>—</b></div>
+        <div class="step" id="s4"><span>4. Alarm</span><b>—</b></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="ai">
+    <h2>Yapay zekâ o anda ne görüyor?</h2>
+    <div class="ai-grid">
+      <div class="card">
+        <div class="card-h">1 · Kameradan kesilen ekran görüntüsü</div>
+        <video id="scr" playsinline muted preload="auto"></video>
+        <p class="small muted">Kamera görüntüsünden yalnızca ATM ekranı kesilip düzleştirilir; modeller yalnızca bu kareyi görür.
+          Müşteri varken bu görüntü hiç alınmaz.</p>
+      </div>
+      <div class="card">
+        <div class="card-h">2 · Yapay zekâ modelinin tahmini</div>
+        <div id="probs"></div>
+        <p class="small muted" id="cnnnote">MobileNetV3 sinir ağı ekranı 6 durumdan birine benzetir.</p>
+      </div>
+      <div class="card">
+        <div class="card-h">3 · Nasıl karar veriliyor?</div>
+        <ul class="how">
+          <li><b>Görüntü ölçümü:</b> parlaklık, kontrast, detay, çizgi ve renk; sistemin ilk saniyelerde öğrendiği normal ekranla karşılaştırılır.</li>
+          <li><b>Yapay zekâ modeli:</b> MobileNetV3, ekranı 6 durumdan birine benzetir.</li>
+          <li><b>Ekran yazısını okuma (OCR):</b> “hizmet dışı / teknik hata” gibi mesajları okur.</li>
+          <li><b>Süre takibi:</b> tek bir kareye bakıp alarm verilmez; sorun birkaç ölçümde tekrar edince alarm oluşur.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="results">
+    <div class="res-h">
+      <h2>Otomatik test sonuçları</h2>
+      <div class="summary" id="summary">—</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Videoya uygulanan</th><th>Sistemin bulduğu</th><th>Nasıl anlaşıldı</th><th>Süre</th><th>Sonuç</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="small muted">Süre, yalnızca ekranın incelenebildiği anlarda sayılır. Bir satıra tıklayarak o ana gidebilirsiniz.</p>
+  </section>
+
+  <section class="about">
+    <div class="card">
+      <h3>Sistem nasıl çalışıyor?</h3>
+      <ol class="flow">
+        <li><b>Kamera</b> ATM'yi gören mevcut güvenlik kamerası (ayrı bir donanım gerekmez).</li>
+        <li><b>Kişi tespiti</b> (YOLO): ATM önünde biri var mı? Yüz tanıma yapılmaz, kimse tanımlanmaz.</li>
+        <li><b>Gizlilik kapısı:</b> alan birkaç saniye boş kalmadan ekran görüntüsü alınmaz; kişilerin başı bulanıklaştırılır, ekran ve tuş takımı maskelenir.</li>
+        <li><b>Ekran analizi:</b> görüntü ölçümleri + yapay zekâ modeli + ekran yazısını okuma.</li>
+        <li><b>Doğrulama ve alarm:</b> sorun birkaç ölçümde sürerse alarm ve otomatik servis kaydı (öncelik, sorumlu ekip, hedef süre).</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Bu demo hakkında</h3>
+      <ul class="notes">
+        <li>Sahneler, proje sahibinin kendi çektiği gerçek ATM videolarının dokularından 3B modelle, tavan kamerası açısından oluşturulmuştur. <b>Gerçek bir güvenlik kamerası kaydı değildir.</b></li>
+        <li>Banka logoları, şirket bilgileri, ATM numarası ve QR kodu görüntülerden kaldırılmıştır; demo herhangi bir bankayı temsil etmez.</li>
+        <li>Arızalar yazılımla simüle edilmiştir. Müşteri görüntüsü ücretsiz lisanslı bir videodan (Pexels) alınmıştır.</li>
+        <li>Bu sayfa sistemin bir çalışmasının <b>kaydıdır</b>; tablodaki sonuçlar kayıt sırasında sistemden okunan değerlerdir, sonradan düzenlenmemiştir.</li>
+        <li id="modelnote">Model ölçümleri aynı sahnelerden ayrılmış test kareleriyle yapılmıştır; sonuçlar bu sahneler için iyimserdir ve gerçek bir kameraya genellenemez. Sahada pilot ölçüm gerekir.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot small muted">ATM Ekran Sağlığı İzleme · demo · <span id="recdate"></span></footer>
+<script src="app.js"></script>
+</body>
+</html>
